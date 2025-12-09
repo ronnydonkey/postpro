@@ -714,7 +714,7 @@ export const usePostProStore = create<PostProState>((set, get) => ({
       const now = new Date();
       
       // Create milestone types
-      const milestoneTypes: MilestoneType[] = onboardingData.milestoneTypes.map((mt: any, idx: number) => ({
+      const milestoneTypes: MilestoneType[] = onboardingData.milestoneTypes.map((mt, idx) => ({
         id: `mt-${mt.code}-${idx}`,
         projectId,
         code: mt.code,
@@ -727,7 +727,7 @@ export const usePostProStore = create<PostProState>((set, get) => ({
       }));
       
       // Create episodes
-      const episodes: Episode[] = Array.from({ length: onboardingData.episodeCount }, (_, i) => ({
+      const episodes: Episode[] = Array.from({ length: onboardingData.episodeCount }, (_unused, i) => ({
         id: `ep-${i + 1}`,
         projectId,
         number: `${onboardingData.episodePrefix}${onboardingData.episodeStartNumber + i}`,
@@ -786,7 +786,7 @@ export const usePostProStore = create<PostProState>((set, get) => ({
     ];
     
     // Create episodes
-    const episodes: Episode[] = Array.from({ length: 10 }, (_, i) => ({
+    const episodes: Episode[] = Array.from({ length: 10 }, (_unused, i) => ({
       id: `ep-${i + 1}`,
       projectId,
       number: `${301 + i}`,
