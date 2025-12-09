@@ -49,6 +49,7 @@ interface PostProState {
   isLoading: boolean;
   isSaving: boolean;
   error: string | null;
+  showOnboarding: boolean;
   
   // Actions
   setCurrentProject: (project: Project | null) => void;
@@ -68,6 +69,12 @@ interface PostProState {
   // Data loading from API
   loadProject: (projectId: string) => Promise<void>;
   fetchProjectData: (projectId: string) => Promise<void>;
+  
+  // Project creation
+  createProjectFromOnboarding: (onboardingData: any) => Promise<void>;
+  
+  // UI actions
+  setShowOnboarding: (show: boolean) => void;
   
   // Demo data
   loadDemoData: () => void;
@@ -296,9 +303,11 @@ export const usePostProStore = create<PostProState>((set, get) => ({
   isLoading: false,
   isSaving: false,
   error: null,
+  showOnboarding: false,
   
   // Actions
   setCurrentProject: (project) => set({ currentProject: project }),
+  setShowOnboarding: (show) => set({ showOnboarding: show }),
   setViewMode: (mode) => set({ viewMode: mode }),
   setDateRange: (range) => set({ dateRange: range }),
   selectEpisode: (id) => set({ selectedEpisodeId: id }),
@@ -663,6 +672,98 @@ export const usePostProStore = create<PostProState>((set, get) => ({
       console.error('Failed to fetch project:', error);
       // Fall back to demo data
       get().loadDemoData();
+    }
+  },
+  
+  // Project creation from onboarding
+  createProjectFromOnboarding: async (onboardingData: any) => {
+    set({ isSaving: true, error: null });
+    
+    try {
+      // Create project via API
+      const projectResponse = await api.projects.create({
+        organizationId: 'default-org', // TODO: get from auth context
+        name: onboardingData.projectName,
+        code: onboardingData.projectCode || undefined,
+        seasonNumber: onboardingData.seasonNumber || undefined,
+        episodeCount: onboardingData.episodeCount,
+        episodePrefix: onboardingData.episodePrefix || undefined,
+      });
+      
+      const projectId = projectResponse.data.id;
+      
+      // Create milestone types
+      for (const mt of onboardingData.milestoneTypes) {
+        await api.milestoneTypes.create(projectId, {
+          code: mt.code,
+          name: mt.name,
+          sortOrder: mt.sortOrder,
+          color: mt.color,
+          requiresCompletionOf: mt.requiresCompletionOf || [],
+        });
+      }
+      
+      // Load the newly created project
+      await get().fetchProjectData(projectId);
+      
+      set({ isSaving: false, showOnboarding: false });
+    } catch (error) {
+      console.error('Failed to create project:', error);
+      // For demo mode, create project locally
+      const projectId = `project-${Date.now()}`;
+      const now = new Date();
+      
+      // Create milestone types
+      const milestoneTypes: MilestoneType[] = onboardingData.milestoneTypes.map((mt: any, idx: number) => ({
+        id: `mt-${mt.code}-${idx}`,
+        projectId,
+        code: mt.code,
+        name: mt.name,
+        sortOrder: mt.sortOrder,
+        isHardDeadline: mt.isHardDeadline || false,
+        color: mt.color,
+        requiresCompletionOf: mt.requiresCompletionOf || [],
+        createdAt: now
+      }));
+      
+      // Create episodes
+      const episodes: Episode[] = Array.from({ length: onboardingData.episodeCount }, (_, i) => ({
+        id: `ep-${i + 1}`,
+        projectId,
+        number: `${onboardingData.episodePrefix}${onboardingData.episodeStartNumber + i}`,
+        title: '',
+        editor: onboardingData.defaultEditor || undefined,
+        sortOrder: i,
+        status: 'active',
+        createdAt: now,
+        updatedAt: now
+      }));
+      
+      set({
+        currentProject: {
+          id: projectId,
+          organizationId: 'default-org',
+          name: onboardingData.projectName,
+          code: onboardingData.projectCode,
+          seasonNumber: onboardingData.seasonNumber || undefined,
+          status: 'active',
+          settings: {
+            workWeekDays: onboardingData.workWeekDays,
+            timezone: onboardingData.timezone,
+          },
+          createdAt: now,
+          updatedAt: now
+        },
+        episodes,
+        milestones: [],
+        milestoneTypes,
+        calendarEvents: [],
+        workItems: [],
+        crewMembers: [],
+        sessions: [],
+        isSaving: false,
+        showOnboarding: false
+      });
     }
   },
   

@@ -4,6 +4,7 @@ import { CommandBar } from './components/CommandBar';
 import { CalendarView } from './components/CalendarView';
 import { GridView } from './components/GridView';
 import { ListView } from './components/ListView';
+import { OnboardingWizard } from './components/OnboardingWizard';
 import { usePostProStore } from './lib/store';
 import { 
   Calendar, 
@@ -72,7 +73,7 @@ const Header: React.FC = () => {
 // ============================================================================
 
 const Sidebar: React.FC = () => {
-  const { viewMode, setViewMode } = usePostProStore();
+  const { viewMode, setViewMode, setShowOnboarding } = usePostProStore();
   
   const navItems = [
     { id: 'gantt', label: 'Timeline', icon: GanttChart },
@@ -104,12 +105,13 @@ const Sidebar: React.FC = () => {
       <div className="flex-1" />
       
       <button
+        onClick={() => setShowOnboarding(true)}
         className={clsx(
           'w-12 h-12 rounded-xl flex items-center justify-center',
           'bg-blue-500 hover:bg-blue-600 text-white',
           'transition-colors shadow-lg shadow-blue-500/25'
         )}
-        title="Add new"
+        title="Create new project"
       >
         <Plus className="w-6 h-6" />
       </button>
@@ -206,7 +208,13 @@ const MainContent: React.FC = () => {
 // ============================================================================
 
 const App: React.FC = () => {
-  const { loadDemoData, isLoading } = usePostProStore();
+  const { 
+    loadDemoData, 
+    isLoading, 
+    showOnboarding, 
+    setShowOnboarding,
+    createProjectFromOnboarding 
+  } = usePostProStore();
   
   // Load demo data on mount
   useEffect(() => {
@@ -231,6 +239,13 @@ const App: React.FC = () => {
         <Sidebar />
         <MainContent />
       </div>
+      
+      {/* Onboarding Wizard */}
+      <OnboardingWizard
+        isOpen={showOnboarding}
+        onClose={() => setShowOnboarding(false)}
+        onSubmit={createProjectFromOnboarding}
+      />
     </div>
   );
 };
