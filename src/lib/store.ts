@@ -714,7 +714,7 @@ export const usePostProStore = create<PostProState>((set, get) => ({
       const now = new Date();
       
       // Create milestone types
-      const milestoneTypes: MilestoneType[] = onboardingData.milestoneTypes.map((mt, idx) => ({
+      const milestoneTypes: MilestoneType[] = onboardingData.milestoneTypes.map((mt: { code: string; name: string; sortOrder: number; isHardDeadline: boolean; color?: string; requiresCompletionOf: string[] }, idx: number) => ({
         id: `mt-${mt.code}-${idx}`,
         projectId,
         code: mt.code,
