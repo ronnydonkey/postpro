@@ -8,6 +8,14 @@ dist/
 .env
 .env.local
 .env.*.local
+*.env
+.envrc
+
+# API Keys and Secrets (extra protection)
+*api*key*
+*secret*
+*password*
+*token*
 
 # IDE
 .vscode/
