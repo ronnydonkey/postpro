@@ -1,6 +1,9 @@
 import React, { useEffect } from 'react';
 import { GanttTimeline } from './components/GanttTimeline';
 import { CommandBar } from './components/CommandBar';
+import { CalendarView } from './components/CalendarView';
+import { GridView } from './components/GridView';
+import { ListView } from './components/ListView';
 import { usePostProStore } from './lib/store';
 import { 
   Calendar, 
@@ -125,6 +128,7 @@ const MainContent: React.FC = () => {
     milestones,
     milestoneTypes,
     calendarEvents,
+    workItems,
     dateRange,
     setDateRange,
     selectMilestone,
@@ -157,21 +161,33 @@ const MainContent: React.FC = () => {
       )}
       
       {viewMode === 'grid' && (
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 h-full flex items-center justify-center">
-          <p className="text-gray-500">Grid view coming soon...</p>
-        </div>
+        <GridView
+          episodes={episodes}
+          milestones={milestones}
+          milestoneTypes={milestoneTypes}
+          onMilestoneClick={handleMilestoneClick}
+        />
       )}
       
       {viewMode === 'calendar' && (
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 h-full flex items-center justify-center">
-          <p className="text-gray-500">Calendar view coming soon...</p>
-        </div>
+        <CalendarView
+          episodes={episodes}
+          milestones={milestones}
+          milestoneTypes={milestoneTypes}
+          calendarEvents={calendarEvents}
+          onMilestoneClick={handleMilestoneClick}
+          onDateClick={handleCellClick}
+        />
       )}
       
       {viewMode === 'list' && (
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 h-full flex items-center justify-center">
-          <p className="text-gray-500">Task list view coming soon...</p>
-        </div>
+        <ListView
+          episodes={episodes}
+          milestones={milestones}
+          milestoneTypes={milestoneTypes}
+          workItems={workItems}
+          onMilestoneClick={handleMilestoneClick}
+        />
       )}
       
       {/* Command Bar - floating at bottom */}
