@@ -72,6 +72,16 @@ const MILESTONE_TEMPLATES = {
     { code: 'MIX', name: 'Final Mix', sortOrder: 6, requiresCompletionOf: ['FPL'] },
     { code: 'D', name: 'Delivery', sortOrder: 7, requiresCompletionOf: ['MIX'], isHardDeadline: true },
   ],
+  roughFine: [
+    { code: 'RC1', name: 'Rough Cut 1', sortOrder: 1, requiresCompletionOf: [] },
+    { code: 'RC2', name: 'Rough Cut 2', sortOrder: 2, requiresCompletionOf: ['RC1'] },
+    { code: 'FC1', name: 'Fine Cut 1', sortOrder: 3, requiresCompletionOf: ['RC2'] },
+    { code: 'FC2', name: 'Fine Cut 2', sortOrder: 4, requiresCompletionOf: ['FC1'] },
+    { code: 'LOCK', name: 'Picture Lock', sortOrder: 5, requiresCompletionOf: ['FC2'], isHardDeadline: true },
+    { code: 'MIX', name: 'Final Mix', sortOrder: 6, requiresCompletionOf: ['LOCK'] },
+    { code: 'CC', name: 'Color Correction', sortOrder: 7, requiresCompletionOf: ['LOCK'] },
+    { code: 'D', name: 'Delivery', sortOrder: 8, requiresCompletionOf: ['MIX', 'CC'], isHardDeadline: true },
+  ],
   minimal: [
     { code: 'CUT', name: 'Cut', sortOrder: 1, requiresCompletionOf: [] },
     { code: 'LOCK', name: 'Lock', sortOrder: 2, requiresCompletionOf: ['CUT'], isHardDeadline: true },
@@ -401,7 +411,7 @@ export const OnboardingWizard: React.FC<OnboardingWizardProps> = ({
                 <label className="block text-sm font-medium text-gray-700 mb-3">
                   Quick Templates
                 </label>
-                <div className="flex gap-3">
+                <div className="flex flex-wrap gap-3">
                   <button
                     onClick={() => loadTemplate('streaming')}
                     className="px-4 py-2 text-sm font-medium bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
@@ -413,6 +423,12 @@ export const OnboardingWizard: React.FC<OnboardingWizardProps> = ({
                     className="px-4 py-2 text-sm font-medium bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
                   >
                     Broadcast Comedy
+                  </button>
+                  <button
+                    onClick={() => loadTemplate('roughFine')}
+                    className="px-4 py-2 text-sm font-medium bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
+                  >
+                    Rough/Fine Cut
                   </button>
                   <button
                     onClick={() => loadTemplate('minimal')}
@@ -436,9 +452,10 @@ export const OnboardingWizard: React.FC<OnboardingWizardProps> = ({
                           type="text"
                           value={mt.code}
                           onChange={(e) => updateMilestoneType(index, { code: e.target.value.toUpperCase() })}
-                          placeholder="EC"
+                          placeholder="RC1, FC2, EC, etc."
                           className="w-full px-3 py-1.5 text-sm border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
                         />
+                        <p className="text-xs text-gray-500 mt-1">Short code (e.g., RC1, FC2)</p>
                       </div>
                       <div className="col-span-2">
                         <label className="block text-xs font-medium text-gray-700 mb-1">
@@ -448,9 +465,10 @@ export const OnboardingWizard: React.FC<OnboardingWizardProps> = ({
                           type="text"
                           value={mt.name}
                           onChange={(e) => updateMilestoneType(index, { name: e.target.value })}
-                          placeholder="Editor's Cut"
+                          placeholder="Rough Cut 1, Fine Cut 2, Editor's Cut, etc."
                           className="w-full px-3 py-1.5 text-sm border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
                         />
+                        <p className="text-xs text-gray-500 mt-1">Full name (e.g., Rough Cut 1)</p>
                       </div>
                       <div className="flex items-end">
                         <button
@@ -479,6 +497,16 @@ export const OnboardingWizard: React.FC<OnboardingWizardProps> = ({
                           value={mt.color || '#6B7280'}
                           onChange={(e) => updateMilestoneType(index, { color: e.target.value })}
                           className="w-8 h-8 rounded border border-gray-300"
+                        />
+                      </div>
+                      <div className="flex items-center gap-2 ml-auto">
+                        <label className="text-xs text-gray-700">Order:</label>
+                        <input
+                          type="number"
+                          value={mt.sortOrder}
+                          onChange={(e) => updateMilestoneType(index, { sortOrder: parseInt(e.target.value) || 1 })}
+                          min="1"
+                          className="w-16 px-2 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
                         />
                       </div>
                     </div>
