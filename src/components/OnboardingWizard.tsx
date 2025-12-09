@@ -5,7 +5,6 @@ import {
   Check, 
   Film, 
   List, 
-  Calendar,
   Settings,
   FileText,
   X,
@@ -13,7 +12,6 @@ import {
   Trash2
 } from 'lucide-react';
 import clsx from 'clsx';
-import type { MilestoneType } from '../types';
 
 interface OnboardingData {
   // Step 1: Project Basics
