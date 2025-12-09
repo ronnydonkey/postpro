@@ -453,7 +453,13 @@ export const usePostProStore = create<PostProState>((set, get) => ({
         return {
           success: aiResult.success,
           message: aiResult.message,
-          conflicts: aiResult.conflicts,
+          conflicts: aiResult.conflicts?.map(c => ({
+            type: c.type as 'dependency' | 'resource' | 'deadline',
+            severity: c.severity as 'error' | 'warning' | 'info',
+            message: c.message,
+            affectedMilestones: c.affectedMilestones || [],
+            suggestedResolution: c.suggestedResolution,
+          })),
         };
       }
     } catch (error) {

@@ -50,9 +50,10 @@ interface AICommandResult {
     params: Record<string, any>;
   }>;
   conflicts?: Array<{
-    type: string;
-    severity: string;
+    type: 'dependency' | 'resource' | 'deadline';
+    severity: 'error' | 'warning' | 'info';
     message: string;
+    affectedMilestones: string[];
     suggestedResolution?: string;
   }>;
   clarificationNeeded?: string;
@@ -201,7 +202,7 @@ Today is ${new Date().toLocaleDateString()}.`;
  * Extract actionable commands from AI response
  * This is a simple parser - in production, the AI could return structured JSON
  */
-function extractActions(aiResponse: string, context: ProjectContext): AICommandResult['actions'] {
+function extractActions(_aiResponse: string, _context: ProjectContext): AICommandResult['actions'] {
   const actions: AICommandResult['actions'] = [];
   
   // Look for patterns like "move episode 304's FPL to Friday"
@@ -219,8 +220,8 @@ function extractActions(aiResponse: string, context: ProjectContext): AICommandR
  * This provides basic understanding without requiring Claude
  */
 export async function processCommandFallback(
-  input: string,
-  context: ProjectContext
+  _input: string,
+  _context: ProjectContext
 ): Promise<AICommandResult> {
   // This would use a simpler rule-based or pattern-matching approach
   // For now, return a helpful message
