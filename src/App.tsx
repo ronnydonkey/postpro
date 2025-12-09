@@ -140,6 +140,11 @@ const MainContent: React.FC = () => {
     // Could open a quick-add dialog here
   };
   
+  const handleDateClick = (date: Date) => {
+    console.log('Date clicked:', date);
+    // Could open a quick-add dialog here
+  };
+  
   const handleMilestoneClick = (milestone: any) => {
     selectMilestone(milestone.id);
     // Could open a detail panel here
@@ -176,7 +181,7 @@ const MainContent: React.FC = () => {
           milestoneTypes={milestoneTypes}
           calendarEvents={calendarEvents}
           onMilestoneClick={handleMilestoneClick}
-          onDateClick={handleCellClick}
+          onDateClick={handleDateClick}
         />
       )}
       

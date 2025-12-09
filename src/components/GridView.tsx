@@ -32,7 +32,6 @@ export const GridView: React.FC<GridViewProps> = ({
   milestoneTypes,
   onMilestoneClick
 }) => {
-  const [sortBy, setSortBy] = useState<'episode' | 'milestone'>('episode');
   const [filterStatus, setFilterStatus] = useState<string>('all');
   const [expandedEpisodes, setExpandedEpisodes] = useState<Set<string>>(new Set());
   

@@ -253,7 +253,7 @@ export const ListView: React.FC<ListViewProps> = ({
           ) : (
             sortedItems.map(item => {
               const isOverdue = item.date && isPast(item.date) && item.status !== 'completed';
-              const isToday = item.date && isToday(item.date);
+              const isItemToday = item.date && isToday(item.date);
               
               return (
                 <div
@@ -268,7 +268,7 @@ export const ListView: React.FC<ListViewProps> = ({
                   className={clsx(
                     'px-6 py-4 hover:bg-gray-50 cursor-pointer transition-colors',
                     isOverdue && 'bg-red-50',
-                    isToday && !isOverdue && 'bg-blue-50'
+                    isItemToday && !isOverdue && 'bg-blue-50'
                   )}
                 >
                   <div className="flex items-start gap-4">
@@ -301,7 +301,7 @@ export const ListView: React.FC<ListViewProps> = ({
                         <div className="flex items-center gap-2 shrink-0">
                           <div className={clsx(
                             'text-sm font-medium',
-                            isOverdue ? 'text-red-600' : isToday ? 'text-blue-600' : 'text-gray-600'
+                            isOverdue ? 'text-red-600' : isItemToday ? 'text-blue-600' : 'text-gray-600'
                           )}>
                             {getDateLabel(item.date)}
                           </div>

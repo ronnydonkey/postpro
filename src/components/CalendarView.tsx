@@ -69,8 +69,6 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
   
   const days = useMemo((): DayCell[] => {
     return eachDayOfInterval({ start: calendarStart, end: calendarEnd }).map(date => {
-      const dateKey = format(date, 'yyyy-MM-dd');
-      
       const dayMilestones = milestones.filter(m => 
         m.scheduledDate && isSameDay(m.scheduledDate, date)
       );
