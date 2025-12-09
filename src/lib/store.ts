@@ -50,6 +50,7 @@ interface PostProState {
   isSaving: boolean;
   error: string | null;
   showOnboarding: boolean;
+  conversationHistory: Array<{ role: 'user' | 'assistant'; content: string }>;
   
   // Actions
   setCurrentProject: (project: Project | null) => void;
@@ -304,6 +305,7 @@ export const usePostProStore = create<PostProState>((set, get) => ({
   isSaving: false,
   error: null,
   showOnboarding: false,
+  conversationHistory: [],
   
   // Actions
   setCurrentProject: (project) => set({ currentProject: project }),
@@ -376,7 +378,89 @@ export const usePostProStore = create<PostProState>((set, get) => ({
   processCommand: async (input) => {
     const state = get();
     
-    // If we have a real project (not demo), use the API
+    // Try AI-powered command processing first (works for both demo and real projects)
+    try {
+      const { processAICommand } = await import('./aiCommand');
+      
+      // Build context for AI
+      const context = {
+        project: {
+          name: state.currentProject?.name || 'Demo Project',
+          code: state.currentProject?.code,
+          seasonNumber: state.currentProject?.seasonNumber,
+        },
+        episodes: state.episodes.map(ep => ({
+          id: ep.id,
+          number: ep.number,
+          title: ep.title,
+          director: ep.director,
+          editor: ep.editor,
+          status: ep.status,
+        })),
+        milestones: state.milestones.map(m => {
+          const episode = state.episodes.find(e => e.id === m.episodeId);
+          const milestoneType = state.milestoneTypes.find(mt => mt.id === m.milestoneTypeId);
+          return {
+            id: m.id,
+            episodeId: m.episodeId,
+            episodeNumber: episode?.number || '?',
+            milestoneTypeCode: milestoneType?.code || '?',
+            milestoneTypeName: milestoneType?.name || '?',
+            scheduledDate: m.scheduledDate?.toISOString(),
+            status: m.status,
+          };
+        }),
+        milestoneTypes: state.milestoneTypes.map(mt => ({
+          code: mt.code,
+          name: mt.name,
+          sortOrder: mt.sortOrder,
+          isHardDeadline: mt.isHardDeadline,
+          requiresCompletionOf: mt.requiresCompletionOf,
+        })),
+        calendarEvents: state.calendarEvents.map(ce => ({
+          name: ce.name,
+          eventType: ce.eventType,
+          startDate: ce.startDate.toISOString(),
+          endDate: ce.endDate?.toISOString(),
+        })),
+      };
+      
+      const aiResult = await processAICommand(input, context, state.conversationHistory);
+      
+      // If AI processing succeeded or we have an API key configured, use AI results
+      if (aiResult.success || import.meta.env.VITE_ANTHROPIC_API_KEY) {
+        // Update conversation history
+        const updatedHistory = [
+          ...state.conversationHistory,
+          { role: 'user' as const, content: input },
+          { role: 'assistant' as const, content: aiResult.message }
+        ].slice(-10); // Keep last 10 messages for context
+        set({ conversationHistory: updatedHistory });
+        
+        // Execute any actions from the AI response
+        if (aiResult.actions && aiResult.actions.length > 0) {
+          for (const action of aiResult.actions) {
+            if (action.type === 'move') {
+              // Find the milestone and move it
+              const milestone = state.milestones.find(m => m.id === action.target);
+              if (milestone && action.params.newDate) {
+                await get().moveMilestone(milestone.id, new Date(action.params.newDate));
+              }
+            }
+          }
+        }
+        
+        return {
+          success: aiResult.success,
+          message: aiResult.message,
+          conflicts: aiResult.conflicts,
+        };
+      }
+    } catch (error) {
+      console.error('AI command processing failed, falling back:', error);
+    }
+    
+    // If we have a real project (not demo), try the API endpoint
     if (state.currentProject && state.currentProject.id !== 'demo-project') {
       try {
         const response = await api.command(
@@ -402,14 +486,11 @@ export const usePostProStore = create<PostProState>((set, get) => ({
         };
       } catch (error) {
         console.error('API command failed:', error);
-        return {
-          success: false,
-          message: error instanceof Error ? error.message : 'Failed to process command'
-        };
+        // Fall through to local parsing
       }
     }
     
-    // Fall back to local parsing for demo mode
+    // Fall back to local parsing for demo mode (only if AI and API both fail)
     const parsed = parseCommand(input, state);
     
     switch (parsed.action) {
