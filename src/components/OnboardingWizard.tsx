@@ -106,6 +106,7 @@ export const OnboardingWizard: React.FC<OnboardingWizardProps> = ({
 }) => {
   const [currentStep, setCurrentStep] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [data, setData] = useState<OnboardingData>({
     projectName: '',
     projectCode: '',
@@ -141,11 +142,29 @@ export const OnboardingWizard: React.FC<OnboardingWizardProps> = ({
 
   const handleSubmit = async () => {
     setIsSubmitting(true);
+    setError(null);
     try {
       await onSubmit(data);
       onClose();
+      // Reset wizard state on success
+      setCurrentStep(1);
+      setData({
+        projectName: '',
+        projectCode: '',
+        seasonNumber: null,
+        startDate: '',
+        targetDeliveryDate: '',
+        episodeCount: 10,
+        episodePrefix: '',
+        episodeStartNumber: 1,
+        defaultEditor: '',
+        milestoneTypes: [],
+        workWeekDays: [1, 2, 3, 4, 5],
+        timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+      });
     } catch (error) {
       console.error('Failed to create project:', error);
+      setError(error instanceof Error ? error.message : 'Failed to create project. Please try again.');
     } finally {
       setIsSubmitting(false);
     }
@@ -638,11 +657,22 @@ export const OnboardingWizard: React.FC<OnboardingWizardProps> = ({
           )}
         </div>
 
+        {/* Error Message */}
+        {error && (
+          <div className="px-8 py-3 bg-red-50 border-t border-red-200">
+            <div className="flex items-center gap-2 text-red-800 text-sm">
+              <X className="w-4 h-4" />
+              <span>{error}</span>
+            </div>
+          </div>
+        )}
+
         {/* Footer */}
         <div className="flex items-center justify-between px-8 py-6 border-t border-gray-200 bg-gray-50">
           <button
             onClick={currentStep === 1 ? onClose : handleBack}
-            className="px-4 py-2 text-gray-700 hover:bg-gray-200 rounded-lg transition-colors flex items-center gap-2"
+            disabled={isSubmitting}
+            className="px-4 py-2 text-gray-700 hover:bg-gray-200 rounded-lg transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <ChevronLeft className="w-4 h-4" />
             {currentStep === 1 ? 'Cancel' : 'Back'}
